@@ -230,12 +230,18 @@ def main():
             best_loss = train_metrics["loss"]
             torch.save(model.state_dict(), save_path)
 
-        print(
-            f"Epoch [{epoch:03d}/{args.epochs:03d}] | "
-            f"train_loss={train_metrics['loss']:.4f} | "
-            f"train_dice={train_metrics['dice']:.4f} | "
-            f"saved: {save_path}"
-        )
+            print(
+                f"Epoch [{epoch:03d}/{args.epochs:03d}] | "
+                f"train_loss={train_metrics['loss']:.4f} | "
+                f"train_dice={train_metrics['dice']:.4f} | "
+                f"saved: {save_path}" 
+            )
+        else:
+            print(
+                f"Epoch [{epoch:03d}/{args.epochs:03d}] | "
+                f"train_loss={train_metrics['loss']:.4f} | "
+                f"train_dice={train_metrics['dice']:.4f}"
+            )
 
     print("Training finished.")
 

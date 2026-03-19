@@ -15,7 +15,7 @@ for MODEL in "${MODELS[@]}"; do
   for CENTER in "${CENTERS[@]}"; do
     echo "Running MODEL=${MODEL}, CENTER=${CENTER}"
 
-    python train.py \
+    python train_baselines.py \
       --dataset_class "${DATASET_CLASS}" \
       --data_path "${DATA_PATH}" \
       --center "${CENTER}" \

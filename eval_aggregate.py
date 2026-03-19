@@ -40,8 +40,9 @@ def parse_args():
         default="Unet",
         choices=["Unet", "UnetPlusPlus", "DeepLabV3", "FPN", "PAN", "Segformer"],
     )
-
-    parser.add_argument("--weight_path", type=str, required=True)
+    
+    parser.add_argument("--weight_folder_path", type=str, default="/home/khoi.ho/ML709/SingleRoundFL/weights")
+    parser.add_argument("--agg_mode", type=str, default="average", choices=["average", "fedavg"])
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--save_pred_dir", type=str, default="")
     parser.add_argument("--threshold", type=float, default=0.5)
@@ -97,6 +98,33 @@ def compute_metrics(logits, masks, threshold=0.5):
     iou = ((inter + 1e-7) / (union + 1e-7)).mean().item()
     return dice, iou, preds
 
+def aggregate_checkpoints(weight_paths, client_weights, model_name, device, agg_mode="average"):
+    client_weights = torch.tensor(client_weights, dtype=torch.float32, device=device)
+    client_weights = client_weights / client_weights.sum()
+
+    global_model = build_model(model_name).to(device)
+    global_dict = global_model.state_dict()
+
+    local_state_dicts = []
+    for weight_path in weight_paths:
+        ckpt = torch.load(weight_path, weights_only=True, map_location=device)
+        if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
+            local_state_dicts.append(ckpt["model_state_dict"])
+        else:
+            local_state_dicts.append(ckpt)
+
+    for key in global_dict.keys():
+        if global_dict[key].dtype in [torch.int32, torch.int64, torch.uint8, torch.bool]:
+            global_dict[key] = local_state_dicts[0][key].clone()
+        else:
+            global_dict[key] = torch.zeros_like(global_dict[key], dtype=torch.float32)
+            for i in range(len(local_state_dicts)):
+                global_dict[key] += local_state_dicts[i][key].float() * client_weights[i]
+            global_dict[key] = global_dict[key].to(local_state_dicts[0][key].dtype)
+
+    global_model.load_state_dict(global_dict)
+    return global_model
+
 def main():
     args = parse_args()
     device = torch.device(args.device)
@@ -112,15 +140,21 @@ def main():
         num_workers=args.num_workers,
         pin_memory=(device.type == "cuda"),
     )
+    
+    if args.dataset_class == 'PolypGenFLDataset':
+        if args.agg_mode != "average":
+            weight_count = np.array([256, 301, 457, 227, 208])
+        elif args.agg_mode == "average":
+            weight_count = np.ones(5)
 
-    model = build_model(args.model_name).to(device)
-
-    ckpt = torch.load(args.weight_path, weights_only=True, map_location=device)
-    if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
-        model.load_state_dict(ckpt["model_state_dict"])
-    else:
-        model.load_state_dict(ckpt)
-
+    weight_paths = []
+    for filename in os.listdir(args.weight_folder_path):
+        if f'{args.model_name}_' in filename and 'Call' not in filename and filename.endswith('.pth'):
+            weight_path = os.path.join(args.weight_folder_path, filename)
+            print(f"Loading weights from: {weight_path}")
+            weight_paths.append(weight_path)
+              
+    model = aggregate_checkpoints(weight_paths, weight_count, args.model_name, device, agg_mode=args.agg_mode)
     model.eval()
     criterion = CombinedLoss()
 
@@ -152,7 +186,7 @@ def main():
             })
 
     print("-" * 60)
-    print(f"Weight path : {args.weight_path}")
+    print(f"Weight path : {args.weight_folder_path}")
     print(f"Dataset     : {args.dataset_class}")
     print(f"Center      : {args.center}")
     print(f"Samples     : {len(dataset)}")
