@@ -29,6 +29,7 @@ def parse_args():
 
     parser.add_argument("--dataset_class", type=str, default="PolypGenFLDataset")
     parser.add_argument("--data_path", type=str, default="/home/khoi.ho/ML709/PolypGen2021_MultiCenterData_v3")
+    parser.add_argument("--csv_path", type=str, default="polypgen_split.csv")
     parser.add_argument("--center", type=str, default="6")
     parser.add_argument("--image_size", type=int, default=256)
     parser.add_argument("--batch_size", type=int, default=1)
@@ -75,7 +76,9 @@ def build_dataset(args):
 
     base_kwargs = {
         "data_path": args.data_path,
+        "csv_path": args.csv_path,
         "center": args.center,
+        "split": "test",
         "transform": image_transform,
     }
 
@@ -155,6 +158,7 @@ def main():
     print(f"Weight path : {args.weight_path}")
     print(f"Dataset     : {args.dataset_class}")
     print(f"Center      : {args.center}")
+    print(f"Split       : test")
     print(f"Samples     : {len(dataset)}")
     print(f"Loss        : {total_loss / max(num_batches, 1):.4f}")
     print(f"Dice        : {total_dice / max(num_batches, 1):.4f}")

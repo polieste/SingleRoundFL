@@ -7,7 +7,6 @@ BATCH_SIZE=8
 LR=1e-4
 
 CENTERS=("1" "2" "3" "4" "5" "all")
-CENTERS=("all")
 MODELS=("Unet" "UnetPlusPlus" "DeepLabV3" "FPN" "PAN" "Segformer")
 # MODELS=("DeepLabV3" "PAN")
 
