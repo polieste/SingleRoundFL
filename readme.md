@@ -1,21 +1,23 @@
-
 # SingleRoundFL Baseline
 
-This repository contains a baseline setup for medical image segmentation on the PolypGen dataset.
-The current baseline supports:
+This repository provides a baseline setup for medical image segmentation on the PolypGen dataset.
+
+Current scope:
 
 - local-only training per center
 - centralized training on all training centers
 - post-hoc checkpoint aggregation
 - evaluation with Dice and IoU
 
+It does not yet implement a full multi-round federated training pipeline.
+
 ## Dataset
 
-Download the PolypGen dataset from:
+Download PolypGen from:
 
 - https://www.synapse.org/Synapse:syn45200214
 
-Expected dataset layout used by the commands below:
+Expected directory layout:
 
 ```text
 IoT/
@@ -24,16 +26,14 @@ IoT/
 └── SingleRoundFL/
 ```
 
-The split file used by the code is:
+The split file used by the code is `polypgen_split.csv`.
 
-- `polypgen_split.csv`
+Current split design:
 
-In the current setup:
+- centers `1..5`: training clients and in-domain test centers
+- center `6`: held-out test center
 
-- centers `1..5` are used for training and in-domain testing
-- center `6` is used as a held-out test center
-
-## Environment Setup
+## Setup
 
 Install dependencies:
 
@@ -41,19 +41,17 @@ Install dependencies:
 python -m pip install -r requirements.txt
 ```
 
-## Baseline Workflow
+Run all commands below from the `SingleRoundFL` directory.
 
-Recommended baseline order:
+## Baseline Plan
 
-1. Train a centralized U-Net model with `center=all`
-2. Train local-only U-Net models for centers `1..5`
-3. Evaluate all checkpoints on the test split
-4. Evaluate aggregated checkpoints with `eval_aggregate.py`
-5. Compare Dice and IoU across methods
+1. Train one centralized U-Net with `center=all`.
+2. Train five local-only U-Net models for centers `1..5`.
+3. Evaluate all checkpoints on the test split.
+4. Evaluate aggregated checkpoints with `eval_aggregate.py`.
+5. Compare Dice and IoU across methods.
 
 ## Training
-
-Run the following commands from the `SingleRoundFL` folder.
 
 ### Centralized baseline
 
@@ -62,6 +60,8 @@ python train_baselines.py --dataset_class PolypGenFLDataset --data_path ..\Polyp
 ```
 
 ### Local-only baselines
+
+Run one command per center:
 
 ```bash
 python train_baselines.py --dataset_class PolypGenFLDataset --data_path ..\PolypGen2021_MultiCenterData_v3\PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --center 1 --model_name Unet --epochs 50 --batch_size 8 --lr 1e-4 --save_dir weights_baseline --save_name Unet_PolypGenFLDataset_C1.pth --use_amp
@@ -75,7 +75,9 @@ For a quick sanity check before full training, reduce `--epochs` to `2`.
 
 ## Evaluation
 
-### Evaluate the centralized model
+### Centralized model
+
+Evaluate the centralized checkpoint on each test center:
 
 ```bash
 python eval_baselines.py --dataset_class PolypGenFLDataset --data_path ..\PolypGen2021_MultiCenterData_v3\PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --center 1 --model_name Unet --weight_path weights_baseline\Unet_PolypGenFLDataset_Call.pth
@@ -86,7 +88,9 @@ python eval_baselines.py --dataset_class PolypGenFLDataset --data_path ..\PolypG
 python eval_baselines.py --dataset_class PolypGenFLDataset --data_path ..\PolypGen2021_MultiCenterData_v3\PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --center 6 --model_name Unet --weight_path weights_baseline\Unet_PolypGenFLDataset_Call.pth
 ```
 
-### Evaluate local-only models
+### Local-only models
+
+Evaluate each local checkpoint on its corresponding test center:
 
 ```bash
 python eval_baselines.py --dataset_class PolypGenFLDataset --data_path ..\PolypGen2021_MultiCenterData_v3\PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --center 1 --model_name Unet --weight_path weights_baseline\Unet_PolypGenFLDataset_C1.pth
@@ -96,31 +100,26 @@ python eval_baselines.py --dataset_class PolypGenFLDataset --data_path ..\PolypG
 python eval_baselines.py --dataset_class PolypGenFLDataset --data_path ..\PolypGen2021_MultiCenterData_v3\PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --center 5 --model_name Unet --weight_path weights_baseline\Unet_PolypGenFLDataset_C5.pth
 ```
 
-### Evaluate aggregated checkpoints
+### Aggregated checkpoints
 
 ```bash
 python eval_aggregate.py --dataset_class PolypGenFLDataset --data_path ..\PolypGen2021_MultiCenterData_v3\PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --center 6 --model_name Unet --weight_folder_path weights_baseline --agg_mode average
 python eval_aggregate.py --dataset_class PolypGenFLDataset --data_path ..\PolypGen2021_MultiCenterData_v3\PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --center 6 --model_name Unet --weight_folder_path weights_baseline --agg_mode fedavg
 ```
 
-## Current Scope
+## What Each Script Does
 
-This repository currently provides a baseline experiment setup.
-It does not yet implement a full multi-round federated training pipeline.
+- `train_baselines.py`: trains a single segmentation model
+- `eval_baselines.py`: evaluates one checkpoint on the test split
+- `eval_aggregate.py`: aggregates multiple local checkpoints and evaluates the aggregated model
 
-The intended interpretation of the current scripts is:
+## Suggested Baseline Reporting
 
-- `train_baselines.py`: train one model
-- `eval_baselines.py`: evaluate one checkpoint on the test split
-- `eval_aggregate.py`: aggregate multiple local checkpoints and evaluate the aggregated model
-
-## Suggested Reporting
-
-For the first baseline, report:
+For the first report, include:
 
 - local-only performance per center
 - centralized performance per center
 - aggregated performance
 - mean Dice across centers `1..5`
-- worst-client Dice
+- worst-client Dice across centers `1..5`
 - held-out performance on center `6`
