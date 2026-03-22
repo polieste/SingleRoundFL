@@ -1,9 +1,11 @@
 #!/bin/bash
 
-DATA_PATH="../PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3"
+# DATA_PATH="../PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3"
+DATA_PATH="/kaggle/input/datasets/poliesteeee/iot-2d/PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3"
+
 DATASET_CLASS="PolypGenFLDataset"
-ROUNDS=20
-LOCAL_EPOCHS=5
+ROUNDS=1
+LOCAL_EPOCHS=50
 BATCH_SIZE=64
 LR=2e-5
 MODELS=("Unet" "UnetPlusPlus" "DeepLabV3" "FPN" "PAN" "Segformer")

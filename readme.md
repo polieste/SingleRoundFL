@@ -141,7 +141,7 @@ bash run_train_fedprox.sh
 Or run it directly:
 
 ```bash
-python train_fedprox.py --dataset_class PolypGenFLDataset --data_path ../PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --model_name Unet --rounds 20 --local_epochs 1 --batch_size 8 --lr 1e-4 --prox_mu 1e-2 --save_dir weights_fedprox --save_name FedProx_Unet_PolypGenFLDataset.pth --log_dir logs_fedprox --use_amp
+python train_fedprox.py --dataset_class PolypGenFLDataset --data_path ../PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --model_name Unet --rounds 1 --local_epochs 50 --batch_size 8 --lr 2e-5 --prox_mu 1e-2 --save_dir weights_fedprox --save_name FedProx_Unet_PolypGenFLDataset.pth --log_dir logs_fedprox --use_amp
 ```
 
 ## FedBN
