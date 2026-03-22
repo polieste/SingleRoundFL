@@ -43,14 +43,6 @@ python -m pip install -r requirements.txt
 
 Run all commands below from the `SingleRoundFL` directory.
 
-## Baseline Plan
-
-1. Train one centralized U-Net with `center=all`.
-2. Train five local-only U-Net models for centers `1..5`.
-3. Evaluate all checkpoints on the test split.
-4. Evaluate aggregated checkpoints with `eval_aggregate.py`.
-5. Compare Dice and IoU across methods.
-
 ## Training
 
 ### Centralized baseline
@@ -123,3 +115,29 @@ For the first report, include:
 - mean Dice across centers `1..5`
 - worst-client Dice across centers `1..5`
 - held-out performance on center `6`
+
+## FedAvg
+
+Run FedAvg with:
+
+```bash
+bash run_train_fedavg.sh
+```
+
+Or run it directly:
+
+```bash
+python train_fedavg.py --dataset_class PolypGenFLDataset --data_path ../PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --model_name Unet --rounds 20 --local_epochs 1 --batch_size 8 --lr 1e-4 --save_dir weights_fedavg --save_name FedAvg_Unet_PolypGenFLDataset.pth --log_dir logs_fedavg --use_amp
+```
+## FedProx
+Run FedProx with:
+
+```bash
+bash run_train_fedprox.sh
+```
+
+Or run it directly:
+
+```bash
+python train_fedprox.py --dataset_class PolypGenFLDataset --data_path ../PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --model_name Unet --rounds 20 --local_epochs 1 --batch_size 8 --lr 1e-4 --prox_mu 1e-2 --save_dir weights_fedprox --save_name FedProx_Unet_PolypGenFLDataset.pth --log_dir logs_fedprox --use_amp
+```
