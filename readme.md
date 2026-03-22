@@ -17,6 +17,8 @@ Download PolypGen from:
 
 - https://www.synapse.org/Synapse:syn45200214
 
+FeTS train split at https://www.synapse.org/Synapse:syn29264504
+
 Expected directory layout:
 
 ```text
@@ -141,3 +143,33 @@ Or run it directly:
 ```bash
 python train_fedprox.py --dataset_class PolypGenFLDataset --data_path ../PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --model_name Unet --rounds 20 --local_epochs 1 --batch_size 8 --lr 1e-4 --prox_mu 1e-2 --save_dir weights_fedprox --save_name FedProx_Unet_PolypGenFLDataset.pth --log_dir logs_fedprox --use_amp
 ```
+
+## FedBN
+Run FedBN with:
+
+```bash
+bash run_train_fedbn.sh
+```
+
+Or run it directly:
+
+```bash
+python train_fedbn.py --dataset_class PolypGenFLDataset --data_path ../PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --model_name Unet --rounds 20 --local_epochs 1 --batch_size 8 --lr 1e-4 --save_dir weights_fedbn --save_name FedBN_Unet_PolypGenFLDataset.pth --log_dir logs_fedbn --use_amp
+```
+
+FedBN keeps BatchNorm statistics and parameters local to each client, while aggregating the remaining model weights.
+
+## FedPer
+Run FedPer with:
+
+```bash
+bash run_train_fedper.sh
+```
+
+Or run it directly:
+
+```bash
+python train_fedper.py --dataset_class PolypGenFLDataset --data_path ../PolypGen2021_MultiCenterData_v3/PolypGen2021_MultiCenterData_v3 --csv_path polypgen_split.csv --model_name Unet --rounds 1 --local_epochs 1 --batch_size 8 --lr 1e-4 --personalized_prefixes decoder.,segmentation_head.,classification_head. --save_dir weights_fedper --save_name FedPer_Unet_PolypGenFLDataset.pth --log_dir logs_fedper --use_amp
+```
+
+FedPer keeps the personalization layers local to each client and only aggregates the shared backbone.

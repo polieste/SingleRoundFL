@@ -6,13 +6,13 @@ ROUNDS=20
 LOCAL_EPOCHS=5
 BATCH_SIZE=64
 LR=2e-5
-PROX_MU=1e-2
+PERSONALIZED_PREFIXES="decoder.,segmentation_head.,classification_head."
 MODELS=("Unet" "UnetPlusPlus" "DeepLabV3" "FPN" "PAN" "Segformer")
 
 for MODEL in "${MODELS[@]}"; do
-  echo "Running METHOD=FedProx, MODEL=${MODEL}"
+  echo "Running METHOD=FedPer, MODEL=${MODEL}"
 
-  python train_fedprox.py \
+  python train_fedper.py \
     --dataset_class "${DATASET_CLASS}" \
     --data_path "${DATA_PATH}" \
     --csv_path "polypgen_split.csv" \
@@ -21,9 +21,9 @@ for MODEL in "${MODELS[@]}"; do
     --local_epochs "${LOCAL_EPOCHS}" \
     --batch_size "${BATCH_SIZE}" \
     --lr "${LR}" \
-    --prox_mu "${PROX_MU}" \
-    --save_dir "weights_fedprox" \
-    --save_name "FedProx_${MODEL}_${DATASET_CLASS}.pth" \
-    --log_dir "logs_fedprox" \
+    --personalized_prefixes "${PERSONALIZED_PREFIXES}" \
+    --save_dir "weights_fedper" \
+    --save_name "FedPer_${MODEL}_${DATASET_CLASS}.pth" \
+    --log_dir "logs_fedper" \
     --use_amp
 done
