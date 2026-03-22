@@ -29,6 +29,7 @@ def parse_args():
 
     parser.add_argument("--dataset_class", type=str, default="PolypGenFLDataset")
     parser.add_argument("--data_path", type=str, default="/home/khoi.ho/ML709/PolypGen2021_MultiCenterData_v3")
+    parser.add_argument("--csv_path", type=str, default="polypgen_split.csv")
     parser.add_argument("--center", type=str, default="6")
     parser.add_argument("--image_size", type=int, default=256)
     parser.add_argument("--batch_size", type=int, default=1)
@@ -42,7 +43,7 @@ def parse_args():
     )
     
     parser.add_argument("--weight_folder_path", type=str, default="/home/khoi.ho/ML709/SingleRoundFL/weights")
-    parser.add_argument("--agg_mode", type=str, default="average", choices=["average", "fedavg"])
+    parser.add_argument("--agg_mode", type=str, default="average", choices=["average", "fedavg", "taskarith"])
     parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--save_pred_dir", type=str, default="")
     parser.add_argument("--threshold", type=float, default=0.5)
@@ -76,7 +77,9 @@ def build_dataset(args):
 
     base_kwargs = {
         "data_path": args.data_path,
+        "csv_path": args.csv_path,
         "center": args.center,
+        "split": "test",
         "transform": image_transform,
     }
 
@@ -130,8 +133,6 @@ def main():
     device = torch.device(args.device)
 
     dataset = build_dataset(args)
-    if len(dataset) == 0:
-        raise ValueError("Dataset rỗng.")
 
     loader = DataLoader(
         dataset,

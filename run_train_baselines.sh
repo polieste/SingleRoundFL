@@ -18,12 +18,13 @@ for MODEL in "${MODELS[@]}"; do
     python train_baselines.py \
       --dataset_class "${DATASET_CLASS}" \
       --data_path "${DATA_PATH}" \
+      --csv_path "polypgen_split.csv" \
       --center "${CENTER}" \
       --model_name "${MODEL}" \
       --epochs "${EPOCHS}" \
       --batch_size "${BATCH_SIZE}" \
       --lr "${LR}" \
-      --save_dir "weights" \
+      --save_dir "weights2" \
       --save_name "${MODEL}_${DATASET_CLASS}_C${CENTER}.pth" \
       --use_amp
   done
